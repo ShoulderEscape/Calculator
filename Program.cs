@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -10,397 +11,386 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Calculator
-{
+{ 
     internal class Program
     {
-        public const string error = "Invalid Input";
+        public const string invalid = "Invalid Input";
+        public const string tryAgain = invalid + ", try again";
         static void Main(string[] args)
-        {
+        { 
+            bool ProgramOn = true;
+            List<string> results = new List<string>();
             Console.WriteLine("Hello, this is a calculator program, please input you calculation\n" +
                 "Write it in this way: '5+6*5-4/5'\nAccepted operators include:\n+ for addition\n- for subtraction" +
                 "\n* for multiplication\n/ for division\n" +
-                "You can use parentheses if you wish, for example: '5*(6*5-4)/5'");
-            string input=Console.ReadLine();
-
-
-            char[] operators = { '*', '/', '-', '+' }; //In mathematical order
-
-            string result = parentheses(input, operators);
-            Console.WriteLine(result);
-            while (doneCheck(result, operators) != 0)
+                "You can use parentheses if you wish, for example: '5*(6*5-4)/6'"+"\n");
+            while (ProgramOn)
             {
-                result = Calculate(result, operators);
-            }
-            Console.WriteLine(result);
-
-            //Creates a new function that does not incude the question, so that it can work as a recursive function.
-            /*
-            string result=Start(input);
-            if(result.Contains(error)){
-                Console.WriteLine(error+", try again!");
-                Main(null);
-
-            }
-            else
-            {
-                Console.WriteLine("Result: " + result);
+                if (results.Count > 0)
+                {
+                    Console.WriteLine("You can write 'ans' to use the answer from your previous question in this calculation");
+                }
+                string start;
+                string startInput;
                 while (true)
                 {
-                    Console.WriteLine("Do you want to perform another calculation? 1 for yes, 2 for no");
-                    int choice = int.Parse(Console.ReadLine());
+                    start = Console.ReadLine();
+                    startInput = start;
+                    if (start.ToLower().Contains("ans") && results.Count > 0)
+                    {
+                        if (results.Count > 0)
+                        {
+                            string[] values = results[results.Count - 1].Split('=');
 
+                            startInput = start.Replace("ans", values[1]);
+                        }
+
+                    }
+                    if (checkViability(startInput))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine(tryAgain);
+                    }
+
+                }
+
+                
+                char[] operators = { '*', '/', '-', '+' }; //In mathematical order
+                
+                
+                string result = parentheses(startInput);
+
+                while (doneCheck(result) != 0)
+                {
+                    result = Calculate(result);
+                }
+                //Console.SetCursorPosition(0, Console.CursorTop-1);
+                Console.WriteLine(start + " = " + result);
+                results.Add(start + "=" + result);
+                bool running = true;
+                string choice;
+                while (running)
+                {
+                    Console.WriteLine("Do you want to show all previous results?\n1 for yes, 2 for no");
+                    choice = Console.ReadLine();
                     switch (choice)
                     {
-                        case 1:
-                            Console.WriteLine("Restarting program");
-                            Main(null);
+                        case "1":
+                            int i = 0;
+                            foreach (string str in results)
+                            {
+                                Console.WriteLine(results[i]);
+                                i++;
+                            }
+                            running = false;
                             break;
-                        case 2:
-                            Console.WriteLine("Exiting program");
-                            Environment.Exit(0);
+                        case "2":
+                            running = false;
+                            break;
+
+                        default:
+                            Console.WriteLine(tryAgain);
                             break;
                     }
-            
+
+
                 }
-            
-            
-            }
-            */
-
-
-
-        }
-
-
-
-
-        private static string Start(string input)
-        {
-            char[] operators = { '*', '/', '-', '+' }; //In mathematical order
-            if (checkViability(input) != "") return error;
-            input = parentheses(input, operators);
-            
-            List<double> allValues = getAllValues(input, operators);
-            List<string> allOperators = getAllOperators(input, allValues, operators);
-            input = Negativevalues(input, allOperators, allValues, operators);
-
-            while (true)
-            {
-                string value=Calculate(input, operators);
-                if (doneCheck(input, operators) == 0)
+                running = true;
+                while (running)
                 {
-                    return ""+value;
-                }
-            } 
-        }
-        private static string Negativevalues(string input,List<string> allOperators, 
-            List<double> allValues ,char[] operators)
-        {
-            string[] negativeNumberIndicator = { "*-", "/-", "--", "+-" };
-            //Taken from: https://stackoverflow.com/a/38573531
-            List<int> NegativeValueIndexer = new List<int>();
-            if (input.StartsWith("-"))
-            {
-                NegativeValueIndexer.Add(0);
-                input = input.Substring(1);
-            }
-            foreach (string s in negativeNumberIndicator)
-            {
-                if (input.Contains(s))
-                {
-                    for (int j = 0; j < count(input, s); j++)
+                    Console.WriteLine("Do you want to do another calculation?\n1 for yes, 2 for no");
+                    choice = Console.ReadLine();
+                    switch (choice)
                     {
+                        case "1":
+                            running = false;
+                            break;
+                        case "2":
+                            running = false;
+                            ProgramOn = false;
+                            break;
 
-                        string[] templist = input.Split(operators);
-                        int index = 0;
-                        foreach (string str in templist)
+                        default:
+                            Console.WriteLine(tryAgain);
+                            break;
+                    }
+                }
+                Console.Clear();
+                
+
+                List<List<string>> Negativevalues(string input)
+                {
+                   
+                    string[] ValuesArray = input.Split(operators);
+                    List<double> Values = new List<double>();
+                    bool nextIsNegative = false;
+                    string[] theseOperators = input.Split(ValuesArray, StringSplitOptions.None);
+                    
+                    foreach(string str in ValuesArray)
+                    {
+                        if (str == "")
                         {
-                            if (str == "")
-                            {
-                                NegativeValueIndexer.Add(index);
-                            }
-                            index++;
-
+                            nextIsNegative = true;
+                        }
+                        else if (nextIsNegative)
+                        {
+                            Values.Add(double.Parse(str) * -1);
+                            nextIsNegative = false;
+                        }
+                        else
+                        {
+                            Values.Add(double.Parse(str));
                         }
                     }
-
-                    input.Replace(s, s[0].ToString());
-
-                }
-            }
-            int i=0;
-            List<double> tempValues = allValues;
-            
-            foreach(double value in tempValues)
-            {
-                double thisvalue =value;
-                if (NegativeValueIndexer.Contains(i))
-                {
-                    thisvalue *= -1;
-                    i++;
-
-                }
-                allValues[i] = thisvalue;
-
-            }
-            List<string> newOperators = getAllOperators(input, allValues, operators);
-            allOperators = newOperators;
-
-            return input;
-        }
-        private static string Calculate(string input,char[] operators)
-        {
-            List<double> allValues = getAllValues(input, operators);
-            List<string> allOperators = getAllOperators(input, allValues,operators);
-            //input = Negativevalues(input, allOperators,allValues,operators);
-            //Console.WriteLine(allValues.Count);
-            //Console.WriteLine(allOperators.Count);
-            foreach (char c in operators)
-            {   
-                if (allOperators.Contains("" + c))
-                {
-                    int index = allOperators.IndexOf("" + c);
                     
-                    double firstvalue = allValues[index-1];
-                    double secondvalue = allValues[index];
-
-                    switch (c)
+                    
+                    List<string> newOperators = new List<string>();
+                    foreach (string str in theseOperators)
                     {
-                        case '*':
-                            input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue * secondvalue));
-                            break;
-                        case '/':
-                            input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue / secondvalue));
-                            break;
-                        case '+':
-                            input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue + secondvalue));
-                            break;
-                        case '-':
-                            input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue - secondvalue));
-                            break;
-                    }
-                    return input;
-                }
-            }
-            return "Invalid Input";
-
-        }
-
-        static string parentheses(string input, char[] operators)
-        {
-            Console.WriteLine("Loop: "+input);
-            if (count(input, "(") == count(input, ")"))
-            {
-                if (input.Contains('('))
-                {
-                    int index1 = input.IndexOf('(');
-                    int index2 = input.LastIndexOf(')');
-                    string inside=input.Substring(index1+1, index2-index1-1);
-                    string after=input.Substring(index2+1);
-                    if (inside.Contains(')'))
-                    {
-                        if(inside.IndexOf(')') > inside.IndexOf('('))
+                        if (str != "")
                         {
+                            newOperators.Add("" + str[0]);
+                        }
+                        
+                    }
 
-                            Console.WriteLine("EarlyInside: " + inside);
-                            
-                            while (true)
+                    List<string> ValuesString = new List<string>();
+                    foreach(double d in Values)
+                    {
+                        ValuesString.Add(d + "");
+                    }
+                    if (input.StartsWith("-"))
+                    {
+                        newOperators.RemoveAt(0);
+                    }
+                    return new List<List<string>> { ValuesString, newOperators };
+                    
+                }
+                string Calculate(string input)
+                {
+                    List<List<string>> Output = Negativevalues(input);
+                    List<string> TheseValuesString = Output[0];
+                    List<string> TheseOperators = Output[1];
+                    
+                    List<double> TheseValues = new List<double>();
+                    foreach(string str in TheseValuesString)
+                    {
+                        TheseValues.Add(double.Parse(str));
+                    }
+                    
+                    
+                    foreach (char c in operators)
+                    {
+                        if (TheseOperators.Contains("" + c))
+                        {
+                            int index = TheseOperators.IndexOf("" + c);
+                            double firstvalue = TheseValues[index];
+                            double secondvalue = TheseValues[index + 1];
+
+                            switch (c)
                             {
-                                if(count(inside, "(") == count(inside, ")"))
+                                case '*':
+                                    input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue * secondvalue));
+                                    break;
+                                case '/':
+                                    if (secondvalue == 0)
+                                    {
+                                        return "Undefined!";
+                                    }
+                                    input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue / secondvalue));
+                                    break;
+                                case '+':
+                                    
+                                    input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue + secondvalue));
+                                    break;
+                                case '-':
+                                    input = input.Replace("" + firstvalue + c + secondvalue, "" + (firstvalue - secondvalue));
+                                    break;
+                            }
+                            return input;
+                        }
+                    }
+                    return invalid;
+
+                }
+
+                string parentheses(string input)
+                {
+
+                    if (count(input, "(") == count(input, ")"))
+                    {
+                        if (input.Contains('('))
+                        {
+                            int index1 = input.IndexOf('(');
+                            int index2 = input.LastIndexOf(')');
+                            string inside = input.Substring(index1 + 1, index2 - index1 - 1);
+
+                            if (inside.Contains(')'))
+                            {
+                                int ParenIndex = 1;
+                                for (int i = 0; i < inside.Length; i++)
                                 {
-                                    List<int> RightParen = new List<int>();
-                                    List<int> LeftParen = new List<int>();
-                                    string TempInsideRight = inside;
-                                    string TempInsideLeft = inside;
+                                    switch (inside[i])
+                                    {
+                                        case '(':
+                                            ParenIndex++;
+                                            break;
+                                        case ')':
+                                            ParenIndex--;
 
-                                    for (int i=0; i<count(inside, ")"); i++)
-                                    {
-                                        RightParen.Add((inside.Length - TempInsideRight.Length) + 
-                                            TempInsideRight.IndexOf('(') + 1);
-                                        LeftParen.Add((inside.Length - TempInsideLeft.Length) + 
-                                            TempInsideLeft.IndexOf(')') + 1);
-                                        TempInsideRight = TempInsideRight.Substring(TempInsideRight.IndexOf('(')+1);
-                                        TempInsideLeft = TempInsideLeft.Substring(TempInsideLeft.IndexOf(')')+1);
-
-                                    }
-                                    Console.WriteLine("RightParen");
-                                    foreach (int i in RightParen)
-                                    {
-                                        Console.WriteLine(i);
-                                    }
-                                    Console.WriteLine("LeftParen");
-                                    foreach (int i in LeftParen)
-                                    {
-                                        Console.WriteLine(i);
+                                            if (ParenIndex == 0)
+                                            {
+                                                index2 = i;
+                                                i += inside.Length;
+                                            }
+                                            break;
                                     }
                                 }
+
+
+                                Console.WriteLine(inside);
+                                if (index2 != input.LastIndexOf(')'))
+                                {
+                                    inside = inside.Substring(0, index2);
+                                }
+
+
+
+                            }
+
+
+                            string[] allOtherValues = input.Split(new string[] { inside },2 ,StringSplitOptions.None);
+                            string before = "";
+                            string after = "";
+                            string secondOperator = "";
+
+                            if (allOtherValues[0] != "(")
+                            {
                                 
-                                inside = inside.Substring(0, inside.LastIndexOf(')'));
-                                Console.WriteLine("Inside: " + inside);
-                            } 
+                                before = allOtherValues[0];
+                                before = before.Remove(before.Length - 1);
+                                before = before.Remove(before.Length - 1);
 
+                            }
+                            if (allOtherValues[1] != ")")
+                            {
+                                after = allOtherValues[1];
+                                secondOperator = ""+after[1];
+                                
+                                after = after.Substring(1);
+                                after = after.Substring(1);
+                                
+
+                            }
+
+                            
+                            
+
+
+
+                            
+
+                            string firstOperator;
+                            if (index1 > 0)
+                            {
+                                before = input.Substring(0, index1 - 1);
+                                firstOperator = ""+input[index1 - 1];
+
+                            }
+                            else
+                            {
+                                before = "";
+                                firstOperator = "";
+                            }
+
+
+                            running = true;
+                            while (running)
+                            {
+                                bool insideContains = inside.Contains('(');
+                                bool afterContains = after.Contains('(');
+                                //Taken from: https://stackoverflow.com/a/8851333
+                                string Contains = insideContains + "-" + afterContains;
+                                switch (Contains)
+                                {
+                                    case "False-False":
+                                        running = false;
+                                        break;
+                                    case "True-False":
+
+                                        inside = parentheses(inside);
+                                        break;
+                                    case "False-True":
+
+                                        after = parentheses(after);
+                                        break;
+                                    case "True-True":
+
+                                        inside = parentheses(inside);
+                                        after = parentheses(after);
+                                        break;
+                                    default:
+                                        Console.WriteLine("Faulty Program");
+                                        Environment.Exit(0);
+                                        break;
+                                }
+                            }
+                            while (doneCheck(inside) != 0)
+                            {
+                                inside = Calculate(inside);
+                            }
+                            return before + firstOperator + inside + secondOperator + after;
                         }
-                    }
-                    
-                    string[] allOtherValues = input.Split(new string[] { inside }, StringSplitOptions.None);
-                    string before = allOtherValues[0];
-                    after = allOtherValues[1];
-                    char secondOperator = after[1];
-
-                    before = before.Remove(before.Length - 1);
-                    before = before.Remove(before.Length - 1);
-                    after  = after.Substring(1);
-                    after  = after.Substring(1);
-
-                    Console.WriteLine("Before: "+before +" After: "+ after);
-
-
-
-
-                    char firstOperator;
-                    if (index1 > 0)
-                    {
-                        before = input.Substring(0, index1 - 1);
-                        firstOperator = input[index1 - 1];
-
+                        return input;
                     }
                     else
                     {
-                        before = "";
-                        firstOperator = '\0';
+                        return invalid;
                     }
 
-                   
-                    bool running = true;
-                    while (running)
+                }
+                int count(string input, string looksFor)
+                {
+                    string[] looksForList = new string[1];
+                    looksForList[0] = looksFor;
+                    //From Here: https://stackoverflow.com/a/55426470
+                    return input.Split(looksForList, StringSplitOptions.None).Length - 1;
+                }
+                bool checkViability(string input)
+                {
+                    if (input.Contains(invalid) || input.Any(Char.IsLetter) || count(input, "(") != count(input, ")"))
                     {
-                        bool insideContains = inside.Contains('(');
-                        bool afterContains = after.Contains('(');
-                        //Taken from: https://stackoverflow.com/a/8851333
-                        string Contains = insideContains + "-" + afterContains;
-                        switch (Contains)
+                        return false;
+                    }
+                    else return true;
+                }
+                int doneCheck(string input)
+                {
+                    int winchecker = 0;
+                    foreach (char c in operators)
+                    {
+                        if (input.Contains(c))
                         {
-                            case "False-False":
-                                Console.WriteLine(Contains);
-                                running = false;
-                                break;
-                            case "True-False":
-                                Console.WriteLine(Contains);
-                                inside = parentheses(inside, operators);
-                                break;
-                            case "False-True":
-                                Console.WriteLine(Contains);
-                                after = parentheses(after, operators);
-                                break;
-                            case "True-True":
-                                Console.WriteLine(Contains);
-                                inside = parentheses(inside, operators);
-                                after = parentheses(after, operators);
-                                break;
-                            default:
-                                Console.WriteLine("Faulty Program");
-                                Environment.Exit(0);
-                                break;
+                            if (c == '-')
+                            {
+                                if (!(count(input, "-") == 1 && input.StartsWith(c+"")))
+                                {
+                                    winchecker++;
+                                }
+
+                            }
+                            else
+                            {
+                                winchecker++;
+                            }
                         }
                     }
-                    while (doneCheck(inside,operators) != 0)
-                    {
-                        inside= Calculate(inside, operators);
-                    }
-                    return before + firstOperator + inside + secondOperator + after;
-                }
-                return input;
-            }
-            else
-            {
-                return error;
-            }
-            
-        }
-        static List<double> getAllValues(string input, char[] operators)
-        {
-            string[] allValuesString;
-            allValuesString = input.Split(operators);
-            allValuesString = allValuesString.Except(new string[] { "" }).ToArray();
-            List<double> allValues= new List<double>();
-            foreach (string value in allValuesString)
-            {
-                allValues.Add(double.Parse(value));
-            }
-            return allValues;
-        }
-        static List<string> getAllOperators(string input,List<double> allValues, char[] operators)
-        {
-            string[] allOperators;
-            string[] allValuseString = new string[allValues.Count];
-            int i = 0;
-            foreach(double d in allValues) 
-            {
-                i++;
-                allValuseString[i-1] = "" + d;
-                    
-            } 
-            allOperators = input.Split(allValuseString, StringSplitOptions.None);
-            string[] tempAllOperators = allOperators;
-            int j = 0;
-            List<string> allOperatorsList = new List<string>();
-            allOperatorsList.AddRange(allOperators);
-            string[] allValuesTemp = input.Split(operators);
-            foreach (string value in allValuesTemp)
-            {
-                j++;
-                if(value=="" && j!=0 && j != allOperators.Length)
-                {
-                    allOperatorsList.RemoveAt(j);
+                    return winchecker;
                 }
             }
-            allOperators = allOperators.Except(new string[] { "" }).ToArray();
-
-            
-            return allOperatorsList;
         }
-        static int count(string input, string looksFor)
-        {
-            string[] looksForList= new string[1];
-            looksForList[0] = looksFor;
-            //https://stackoverflow.com/a/55426470
-            return input.Split(looksForList, StringSplitOptions.None).Length - 1;
-        }
-        static string checkViability(string input)
-        {
-            if (input.Contains(error) || input.Any(Char.IsLetter) || count(input, "(") != count(input, ")"))
-            {
-                return error;
-            }
-            else return "";
-        }
-        static int doneCheck(string input, char[] operators)
-        {
-            int winchecker = 0;
-            foreach (char c in operators)
-            {
-                if (input.Contains(c))
-                {
-                    if (c == '-')
-                    {
-                        if (!(count(input, "-") == 1 && input.StartsWith("" + c)))
-                        {
-                            winchecker++;
-                        }
-
-                    }
-                    else
-                    {
-                        winchecker++;
-                    }
-                }
-            }
-            return winchecker;
-
-        }
-        
-        
     }
-        
 }
-        
