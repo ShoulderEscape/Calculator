@@ -1,0 +1,15 @@
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\bin\Debug\net6.0\CalculatorReal.exe
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\bin\Debug\net6.0\CalculatorReal.deps.json
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\bin\Debug\net6.0\CalculatorReal.runtimeconfig.json
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\bin\Debug\net6.0\CalculatorReal.dll
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\bin\Debug\net6.0\CalculatorReal.pdb
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.csproj.AssemblyReference.cache
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.GeneratedMSBuildEditorConfig.editorconfig
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.AssemblyInfoInputs.cache
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.AssemblyInfo.cs
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.csproj.CoreCompileInputs.cache
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.dll
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\refint\CalculatorReal.dll
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.pdb
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\CalculatorReal.genruntimeconfig.cache
+E:\Documments\Study\Systemutveckling\C# Intro\CalculatorReal\obj\Debug\net6.0\ref\CalculatorReal.dll
